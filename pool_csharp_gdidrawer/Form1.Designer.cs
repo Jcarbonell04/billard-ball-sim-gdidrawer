@@ -28,12 +28,31 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Text = "Form1";
+            UI_NewTable = new Button();
+            SuspendLayout();
+            // 
+            // UI_NewTable
+            // 
+            UI_NewTable.Location = new Point(12, 12);
+            UI_NewTable.Name = "UI_NewTable";
+            UI_NewTable.Size = new Size(117, 34);
+            UI_NewTable.TabIndex = 0;
+            UI_NewTable.Text = "New Table [10]";
+            UI_NewTable.UseVisualStyleBackColor = true;
+            // 
+            // Form1
+            // 
+            AutoScaleDimensions = new SizeF(10F, 25F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(800, 450);
+            Controls.Add(UI_NewTable);
+            Name = "Form1";
+            Text = "Form1";
+            ResumeLayout(false);
         }
 
         #endregion
+
+        private Button UI_NewTable;
     }
 }
