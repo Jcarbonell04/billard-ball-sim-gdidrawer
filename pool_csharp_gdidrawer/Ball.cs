@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Numerics; // For Vector2
+using System.Numerics; 
 using GDIDrawer;
 
 namespace pool_csharp_gdidrawer
@@ -59,7 +59,7 @@ namespace pool_csharp_gdidrawer
             // Apply friction
             _velocity *= Friction;
 
-            // Stop if almost zero
+            // Stop if velocity is almost zero
             if (_velocity.LengthSquared() < 0.1f)
             {
                 _velocity = Vector2.Zero;
@@ -72,64 +72,120 @@ namespace pool_csharp_gdidrawer
             if (_center.Y - Radius < 0 && _velocity.Y < 0) _velocity.Y *= -1;
             if (_center.Y + Radius > drawer.ScaledHeight && _velocity.Y > 0) _velocity.Y *= -1;
 
-            // Move
+            // Move ball
             _center += _velocity;
 
             // Ball collisions
             foreach (var other in balls)
             {
                 if (other == this) continue;
-                if (this.Equals(other))
+
+                float dist = Vector2.Distance(_center, other._center);
+                float minDist = this.Radius + other.Radius;
+
+                if (dist < minDist)
                 {
-                    ProcessCollision(other);
+                    ProcessCollision(other, dist, minDist);
                 }
             }
         }
 
-        // Simple collision response
-        private void ProcessCollision(Ball other)
+        private void ProcessCollision(Ball other, float distance, float minDistance)
         {
+            // direction along which the collision occurs
             Vector2 normal = Vector2.Normalize(other._center - this._center);
+
+            // how fast this ball is moving compared to the other
             Vector2 relativeVelocity = this._velocity - other._velocity;
+
+            // how much of the velocity is directed toward anoter ball
             float velAlongNormal = Vector2.Dot(relativeVelocity, normal);
 
-            if (velAlongNormal > 0) return;
+            // if the balls are moving away from each other, do nothing
+            if (velAlongNormal > 0)
+            {
+                return; // no collision response needed
+            }
 
-            float restitution = 1.0f; // Perfectly elastic
-            float j = -(1 + restitution) * velAlongNormal / 2; // divide by 2 for equal mass
+            // elastic collision or like no energy lost
+            float bounceFactor = 1.0f;
 
+            // IMPULSE MAG
+            // Divide by 2 because both balls have equal mass and react equally
+            float j = -(1 + bounceFactor) * velAlongNormal / 2f;
+
+            // Convert scalar impulse to vector along the collision normal
             Vector2 impulse = j * normal;
+
+            // this ball gets pushed along impulse
             this._velocity += impulse;
+            // the other ball gets pushed opposite to impulse
             other._velocity -= impulse;
 
+            // INCREMENT COLLSION COUNTERS
+
+            // Hits: number of collisions this ball has experienced this round
             this.Hits++;
+            other.Hits++;
+            // TotalHits: number of collisions this ball has experienced across all rounds
             this.TotalHits++;
             other.TotalHits++;
+
+            // INCREASE OVERLAP AND PREVENT BALLS FROM STICKING TO EACHOTHER
+            float overlap = minDistance - distance; // how much the balls are overlapping
+            if (overlap > 0)
+            {
+                // Move each ball half the overlap distance along the collision normal
+                Vector2 separation = normal * (overlap / 2f);
+                this._center -= separation;  // move this ball away
+                other._center += separation; // move other ball away
+            }
         }
 
         // Draw ball
         public void Show(CDrawer drawer)
         {
-            // Draw main circle
-            drawer.AddEllipse(_center, Radius, BallColor);
+            // Draw filled ball (diameter = Radius * 2)
+            drawer.AddCenteredEllipse(
+                (int)_center.X,
+                (int)_center.Y,
+                Radius * 2,
+                Radius * 2,
+                BallColor
+            );
 
-            // Cue ball highlight
+            // If cue ball, draw yellow border
             if (BallColor == Color.White)
             {
-                drawer.AddEllipse(_center, Radius, Color.Transparent, 2, CueBorderColor);
+                drawer.AddCenteredEllipse(
+                    (int)_center.X,
+                    (int)_center.Y,
+                    Radius * 2,
+                    Radius * 2,
+                    null,               // no fill
+                    2,                  // border thickness
+                    CueBorderColor      // border color
+                );
             }
 
-            // Draw text
-            drawer.AddCenteredText(_center, ToString(), Color.Black);
+            // Create rectangle for centered text
+            Rectangle textRect = new Rectangle(
+                (int)(_center.X - Radius),
+                (int)(_center.Y - Radius),
+                Radius * 2,
+                Radius * 2
+            );
+
+            // Draw "Radius : Hits" in center
+            drawer.AddText(ToString(), 10, textRect, Color.Black);
         }
 
-        // Overrides
         public override bool Equals(object obj)
         {
             if (obj is Ball other)
             {
                 float distance = Vector2.Distance(_center, other._center);
-                return distance < (this.Radius + other.Radius);
+                return distance < (this.Radius + other.Radius + 1f); // add tiny margin
             }
             return false;
         }
