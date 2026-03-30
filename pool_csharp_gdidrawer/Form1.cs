@@ -10,6 +10,8 @@ namespace pool_csharp_gdidrawer
         private CDrawer drawer;
         private Timer timer = new Timer();
 
+        private int regBalls = 20;
+
         public Form1()
         {
             InitializeComponent();
@@ -31,12 +33,12 @@ namespace pool_csharp_gdidrawer
             balls.Clear();
 
             // Create regular balls (no overlap)
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < regBalls; i++)
             {
                 Ball b;
                 do
                 {
-                    b = new Ball(drawer, Color.Red);
+                    b = new Ball(drawer, RandColor.GetColor());
                 }
                 while (balls.Exists(existing => existing.Equals(b)));
 
@@ -53,7 +55,7 @@ namespace pool_csharp_gdidrawer
 
             // Give cue ball velocity
             //cue.SetVelocity(new Vector2(5, 3));
-            cue.SetVelocity(new Vector2(20, 12));
+            cue.SetVelocity(new Vector2(20, 12)); // increased to ensure collison
 
             balls.Add(cue);
         }

@@ -28,38 +28,53 @@ namespace pool_csharp_gdidrawer
 
         // Constructors
         // Cue ball
+        /// <summary>
+        /// creates a instance of cue ball
+        /// </summary>
+        /// <param name="drawer"></param>
         public Ball(CDrawer drawer)
         {
             Radius = 30;
             BallColor = Color.White;
-            _center = new Vector2(
-                rnd.Next(Radius, drawer.ScaledWidth - Radius),
-                rnd.Next(Radius, drawer.ScaledHeight - Radius)
-            );
+            _center = new Vector2(rnd.Next(Radius, drawer.ScaledWidth - Radius),rnd.Next(Radius, drawer.ScaledHeight - Radius));
         }
 
         // Regular ball
+        /// <summary>
+        /// Set the BallColor. Randomize a Radius between 20 and 50
+        /// </summary>
+        /// <param name="drawer"></param>
+        /// <param name="color"></param>
         public Ball(CDrawer drawer, Color color)
         {
             BallColor = color;
             Radius = rnd.Next(20, 51);
-            _center = new Vector2(
-                rnd.Next(Radius, drawer.ScaledWidth - Radius),
-                rnd.Next(Radius, drawer.ScaledHeight - Radius)
-            );
+            _center = new Vector2(rnd.Next(Radius, drawer.ScaledWidth - Radius), rnd.Next(Radius, drawer.ScaledHeight - Radius));
         }
 
         // Methods
+        /// <summary>
+        /// resets the hit count to 0
+        /// </summary>
         public void ResetHits() => Hits = 0;
 
+        /// <summary>
+        /// assign _velocity to the supplied argument
+        /// </summary>
+        /// <param name="v"></param>
         public void SetVelocity(Vector2 v) => _velocity = v;
 
+        /// <summary>
+        /// slow things down by multipling the velocity with the friction, 
+        /// </summary>
+        /// <param name="drawer">CDrawer to draw on</param>
+        /// <param name="balls">ball list to show animation</param>
         public void Move(CDrawer drawer, List<Ball> balls)
         {
-            // Apply friction
+            // apply friction
             _velocity *= Friction;
 
-            // Stop if velocity is almost zero
+            // stop if velocity is near
             if (_velocity.LengthSquared() < 0.1f)
             {
                 _velocity = Vector2.Zero;
@@ -72,114 +87,91 @@ namespace pool_csharp_gdidrawer
             if (_center.Y - Radius < 0 && _velocity.Y < 0) _velocity.Y *= -1;
             if (_center.Y + Radius > drawer.ScaledHeight && _velocity.Y > 0) _velocity.Y *= -1;
 
-            // Move ball
+            // move ball
             _center += _velocity;
 
-            // Ball collisions
-            foreach (var other in balls)
+            // ball collisions
+            foreach (Ball other in balls)
             {
-                if (other == this) continue;
+                if (other == this)
+                {
+                    continue;
+                }
 
                 float dist = Vector2.Distance(_center, other._center);
                 float minDist = this.Radius + other.Radius;
 
                 if (dist < minDist)
                 {
-                    ProcessCollision(other, dist, minDist);
+                    ProcessCollision(other);
                 }
             }
         }
 
-        private void ProcessCollision(Ball other, float distance, float minDistance)
+        /// <summary>
+        /// this bounces the overlapping iteration ball with itself
+        /// </summary>
+        /// <param name="tar"></param>
+        private void ProcessCollision(Ball tar)
         {
-            // direction along which the collision occurs
-            Vector2 normal = Vector2.Normalize(other._center - this._center);
+            Vector2 dist = tar._center - _center; // Get Collision Vector
+            Vector2 myNorm = Vector2.Normalize(tar._center - _center); // Normalize for invoking ball
+            Vector2 targetNorm = Vector2.Normalize(_center - tar._center); // Normalize for target ball
 
-            // how fast this ball is moving compared to the other
-            Vector2 relativeVelocity = this._velocity - other._velocity;
+            // Calculate Radius weighted velocity vector
+            //Vector2 CMVelocity = Vector2.Add(Vector2.Multiply((float)_iRadius / (_iRadius + tar._iRadius), _v), Vector2.Multiply((float)tar._iRadius / (_iRadius + tar._iRadius), tar._v));
+            Vector2 CMVelocity = (_velocity * ((float)Radius / (Radius + tar.Radius)) + (tar._velocity * ((float)tar.Radius / (Radius + tar.Radius))));
 
-            // how much of the velocity is directed toward anoter ball
-            float velAlongNormal = Vector2.Dot(relativeVelocity, normal);
+            // Process invoking ball
+            _velocity -= CMVelocity;// Vector2.Subtract(_v, CMVelocity);
+            _velocity = Vector2.Reflect(_velocity, myNorm); // perform "bounce"
+            _velocity += CMVelocity;// Vector2.Add(_v, CMVelocity);
+            Hits++;
+            TotalHits++;
 
-            // if the balls are moving away from each other, do nothing
-            if (velAlongNormal > 0)
-            {
-                return; // no collision response needed
-            }
+            // Process target ball
+            tar._velocity -= CMVelocity;
+            tar._velocity = Vector2.Reflect(tar._velocity, targetNorm); // perform bounce
+            tar._velocity += CMVelocity;// Vector2.Add(tar._v, CMVelocity);
+            tar.Hits++;
+            tar.TotalHits++;
 
-            // elastic collision or like no energy lost
-            float bounceFactor = 1.0f;
-
-            // IMPULSE MAG
-            // Divide by 2 because both balls have equal mass and react equally
-            float j = -(1 + bounceFactor) * velAlongNormal / 2f;
-
-            // Convert scalar impulse to vector along the collision normal
-            Vector2 impulse = j * normal;
-
-            // this ball gets pushed along impulse
-            this._velocity += impulse;
-            // the other ball gets pushed opposite to impulse
-            other._velocity -= impulse;
-
-            // INCREMENT COLLSION COUNTERS
-
-            // Hits: number of collisions this ball has experienced this round
-            this.Hits++;
-            other.Hits++;
-            // TotalHits: number of collisions this ball has experienced across all rounds
-            this.TotalHits++;
-            other.TotalHits++;
-
-            // INCREASE OVERLAP AND PREVENT BALLS FROM STICKING TO EACHOTHER
-            float overlap = minDistance - distance; // how much the balls are overlapping
-            if (overlap > 0)
-            {
-                // Move each ball half the overlap distance along the collision normal
-                Vector2 separation = normal * (overlap / 2f);
-                this._center -= separation;  // move this ball away
-                other._center += separation; // move other ball away
-            }
+            // "Fix" collision if balls overlapped - could apply weighted adjustment shift between both balls
+            //       but here we just move the target ball over on collision vector so it doesn't overlap
+            //tar._center = Vector2.Add(tar._center, Vector2.Multiply((float)((_iRadius + tar._iRadius - dist.Length()) / (_iRadius + tar._iRadius)), dist));
+            tar._center += dist * (float)((Radius + tar.Radius - dist.Length()) / (Radius + tar.Radius));
         }
 
-        // Draw ball
+       /// <summary>
+       /// Draw balls to a specifed drawer
+       /// </summary>
+       /// <param name="drawer"></param>
         public void Show(CDrawer drawer)
         {
-            // Draw filled ball (diameter = Radius * 2)
-            drawer.AddCenteredEllipse(
-                (int)_center.X,
-                (int)_center.Y,
-                Radius * 2,
-                Radius * 2,
-                BallColor
-            );
+            // draw filled ball (diameter = Radius * 2)
+            drawer.AddCenteredEllipse( (int)_center.X, (int)_center.Y, Radius * 2, Radius * 2, BallColor);
 
-            // If cue ball, draw yellow border
+            // if cue ball, draw yellow border
             if (BallColor == Color.White)
             {
-                drawer.AddCenteredEllipse(
-                    (int)_center.X,
-                    (int)_center.Y,
-                    Radius * 2,
-                    Radius * 2,
-                    null,               // no fill
-                    2,                  // border thickness
-                    CueBorderColor      // border color
+                drawer.AddCenteredEllipse((int)_center.X, (int)_center.Y, Radius * 2, Radius * 2, null,               // no fill
+                                                                                                  2,                  // border thickness
+                                                                                                  CueBorderColor      // border color
                 );
             }
 
-            // Create rectangle for centered text
-            Rectangle textRect = new Rectangle(
-                (int)(_center.X - Radius),
-                (int)(_center.Y - Radius),
-                Radius * 2,
-                Radius * 2
-            );
+            // create rectangle for centered text
+            Rectangle textRect = new Rectangle((int)(_center.X - Radius), (int)(_center.Y - Radius), Radius * 2, Radius * 2);
 
-            // Draw "Radius : Hits" in center
+            // add radius and collision count text in the ball
             drawer.AddText(ToString(), 10, textRect, Color.Black);
         }
 
+        /// <summary>
+        /// similiar to ica 6, finding if the t balls collide
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public override bool Equals(object obj)
         {
             if (obj is Ball other)
@@ -190,12 +182,35 @@ namespace pool_csharp_gdidrawer
             return false;
         }
 
+        /// <summary>
+        /// override for equals implementation
+        /// </summary>
+        /// <returns></returns>
         public override int GetHashCode() => 1;
 
+        /// <summary>
+        /// formatted string
+        /// </summary>
+        /// <returns></returns>
         public override string ToString() => $"{Radius} : {Hits}";
 
-        // Sorting
-        public int CompareTo(Ball other) => other.Radius.CompareTo(this.Radius); // Descending
+        // SORTING 
+        /// <summary>
+        /// override default to sort by desc radius
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public int CompareTo(Ball other)
+        {
+            return other.Radius.CompareTo(this.Radius); // Descending
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
         public static int CompareHits(Ball a, Ball b)
         {
             if (a == null && b == null) return 0;
@@ -203,6 +218,13 @@ namespace pool_csharp_gdidrawer
             if (b == null) return -1;
             return b.Hits.CompareTo(a.Hits);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
         public static int CompareTotalHits(Ball a, Ball b)
         {
             if (a == null && b == null) return 0;
