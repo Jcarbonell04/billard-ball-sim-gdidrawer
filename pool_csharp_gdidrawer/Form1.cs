@@ -10,7 +10,7 @@ namespace pool_csharp_gdidrawer
         private CDrawer drawer;
         private Timer timer = new Timer();
 
-        private int regBalls = 20;
+        private int regBalls = 10;
 
         public Form1()
         {
@@ -23,6 +23,8 @@ namespace pool_csharp_gdidrawer
 
             // Create drawer
             drawer = new CDrawer(800, 600);
+            lastPos = drawer.Position;
+
 
             // Create balls
             MakeBalls();
@@ -60,19 +62,34 @@ namespace pool_csharp_gdidrawer
             balls.Add(cue);
         }
 
+
+        private Point lastPos;
         private void Timer_Tick(object sender, EventArgs e)
         {
             if (drawer == null) return;
 
+            int scaleDown = 20;
+            Point currentPos = drawer.Position;
+            Point diff = new Point((currentPos.X - lastPos.X) / scaleDown, (currentPos.Y - lastPos.Y) / scaleDown);
+            lastPos = currentPos;
+
             drawer.Clear();
+
 
             foreach (var b in balls)
             {
                 b.Move(drawer, balls);
                 b.Show(drawer);
+                b.SetVelocity(new Vector2(b.Velocity.X + diff.X, b.Velocity.Y + diff.Y));
             }
 
             drawer.Render();
+        }
+
+        private void Form1_Shown(object sender, EventArgs e)
+        {
+            this.Activate();
+            drawer.Position = new Point(this.Right + 100, this.Top);
         }
     }
 }
