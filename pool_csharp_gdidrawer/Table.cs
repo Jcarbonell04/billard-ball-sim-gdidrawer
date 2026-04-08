@@ -1,10 +1,9 @@
-﻿using GDIDrawer;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿// Table.cs - Manages the pool table, balls, canvas, and aiming
+// Handles rendering, ball creation, and shot execution
+// Author: Jaedyn Carbonell
+
+using GDIDrawer;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace pool_csharp_gdidrawer
 {
@@ -63,6 +62,7 @@ namespace pool_csharp_gdidrawer
             // create new drawer
             Canvas = new CDrawer(width, height, false);
             Canvas.RedundaMouse = true; // odd name
+            Canvas.BBColour = Color.Green;
 
             // bind events
             Canvas.MouseMoveScaled += Canvas_MouseMoveScaled;
@@ -82,32 +82,35 @@ namespace pool_csharp_gdidrawer
         {
             _listBalls.Clear();
 
-            // regular balls (no overlap)
-            for (int i = 0; i < numBalls; i++)
+            if (!Running)
             {
-                Ball b;
+                // regular balls (no overlap)
+                for (int i = 0; i < numBalls; i++)
+                {
+                    Ball b;
+                    do
+                    {
+                        b = new Ball(Canvas, RandColor.GetColor());
+                    }
+                    while (_listBalls.Exists(existing => existing.Equals(b)));
+
+                    _listBalls.Add(b);
+                }
+
+                // cue ball
+                Ball cueBall;
+                int attempts = 0;
+
                 do
                 {
-                    b = new Ball(Canvas, RandColor.GetColor());
+                    cueBall = new Ball(Canvas);
+                    attempts++;
                 }
-                while (_listBalls.Exists(existing => existing.Equals(b)));
+                while (_listBalls.Exists(existing => existing.Equals(cueBall)) && attempts < 1000);
 
-                _listBalls.Add(b);
+                _cueBall = cueBall;
+                _listBalls.Add(cueBall);
             }
-
-            // cue ball
-            Ball cueBall;
-            int attempts = 0;
-
-            do
-            {
-                cueBall = new Ball(Canvas);
-                attempts++;
-            }
-            while (_listBalls.Exists(existing => existing.Equals(cueBall)) && attempts < 1000);
-
-            _cueBall = cueBall;
-            _listBalls.Add(cueBall);
         }
 
         /// <summary>

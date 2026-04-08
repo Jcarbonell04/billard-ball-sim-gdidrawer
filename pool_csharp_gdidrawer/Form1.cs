@@ -1,5 +1,7 @@
-using GDIDrawer;
-using System.Numerics;
+// Form1.cs - Main UI for GDIDrawer Pool Simulation
+// Handles buttons, DataGridView, timer, and user interactions
+// Author: Jaedyn Carbonell 
+
 using Timer = System.Windows.Forms.Timer; // avoid ambiguity 
 
 namespace pool_csharp_gdidrawer
@@ -24,14 +26,13 @@ namespace pool_csharp_gdidrawer
             UI_Timer.Tick += Timer_Tick;
             UI_Timer.Start();
 
-            _table = new Table();
-            _table.MakeTable(800, 600, numBalls);  // width, height, number of balls
+            //_table = new Table();
+            //_table.MakeTable(800, 600, numBalls);  // width, height, number of balls
 
             UI_NewTable.Click += UI_NewTable_Click;
             UI_NewTable.MouseWheel += UI_NewTable_MouseWheel;
             UI_NewTable.Text = $"New Table ({numBalls})";
 
-            UI_Friction_Lbl.Click += UI_Friction_Lbl_Click;
             UI_Friction_Lbl.MouseWheel += UI_Friction_Lbl_MouseWheel;
             UI_Friction_Lbl.Text = $"{Ball.Friction:F3}";
 

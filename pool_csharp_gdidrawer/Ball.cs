@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿// Ball.cs - Represents a pool ball with movement, collisions, and stats
+// Supports cue ball, hit tracking, and drawing
+// Author: Jaedyn Carbonell
+
 using System.Numerics; 
 using GDIDrawer;
 
