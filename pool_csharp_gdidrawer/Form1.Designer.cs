@@ -72,7 +72,7 @@
             UI_SortMode_Gbx.Margin = new Padding(2);
             UI_SortMode_Gbx.Name = "UI_SortMode_Gbx";
             UI_SortMode_Gbx.Padding = new Padding(2);
-            UI_SortMode_Gbx.Size = new Size(357, 42);
+            UI_SortMode_Gbx.Size = new Size(362, 42);
             UI_SortMode_Gbx.TabIndex = 2;
             UI_SortMode_Gbx.TabStop = false;
             UI_SortMode_Gbx.Text = "Sort Mode: ";
@@ -116,12 +116,12 @@
             // UI_Display_DGV
             // 
             UI_Display_DGV.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            UI_Display_DGV.Location = new Point(10, 118);
+            UI_Display_DGV.Location = new Point(8, 114);
             UI_Display_DGV.Margin = new Padding(2);
             UI_Display_DGV.Name = "UI_Display_DGV";
             UI_Display_DGV.RowHeadersVisible = false;
             UI_Display_DGV.RowHeadersWidth = 62;
-            UI_Display_DGV.Size = new Size(360, 361);
+            UI_Display_DGV.Size = new Size(363, 436);
             UI_Display_DGV.TabIndex = 3;
             // 
             // label1
@@ -140,7 +140,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(379, 490);
+            ClientSize = new Size(384, 561);
             Controls.Add(label1);
             Controls.Add(UI_Display_DGV);
             Controls.Add(UI_SortMode_Gbx);

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("pool_csharp_gdidrawer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+012b7800b530dcfb00c67c0adb5d1372707234d2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+67838c667cad3083e05af2858cbed599f499c8a3")]
 [assembly: System.Reflection.AssemblyProductAttribute("pool_csharp_gdidrawer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("pool_csharp_gdidrawer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
