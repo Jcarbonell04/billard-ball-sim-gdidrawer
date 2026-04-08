@@ -32,7 +32,8 @@ namespace pool_csharp_gdidrawer
             {
                 foreach (Ball b in _listBalls)
                 {
-                    if (b.Velocity.LengthSquared() > 0.01f)
+                    // game is running if velocity is grester than 0
+                    if (b.Velocity.LengthSquared() > 0.01f) 
                         return true;
                 }
                 return false;
@@ -55,7 +56,23 @@ namespace pool_csharp_gdidrawer
         /// <param name="numBall"></param>
         public void MakeTable(int width, int height, int numBall)
         {
+            // close existing canvas if any
+            if (Canvas != null)
+                Canvas.Close();
 
+            // create new drawer
+            Canvas = new CDrawer(width, height, false);
+            Canvas.RedundaMouse = true; // odd name
+
+            // bind events
+            Canvas.MouseMoveScaled += Canvas_MouseMoveScaled;
+            Canvas.MouseLeftClickScaled += Canvas_MouseLeftClickScaled;
+
+            // create balls
+            MakeBalls(numBall);
+
+            // initial draw
+            ShowTable();
         }
 
         /// <summary>
@@ -63,7 +80,34 @@ namespace pool_csharp_gdidrawer
         /// </summary>
         public void MakeBalls(int numBalls)
         {
+            _listBalls.Clear();
 
+            // regular balls (no overlap)
+            for (int i = 0; i < numBalls; i++)
+            {
+                Ball b;
+                do
+                {
+                    b = new Ball(Canvas, RandColor.GetColor());
+                }
+                while (_listBalls.Exists(existing => existing.Equals(b)));
+
+                _listBalls.Add(b);
+            }
+
+            // cue ball
+            Ball cueBall;
+            int attempts = 0;
+
+            do
+            {
+                cueBall = new Ball(Canvas);
+                attempts++;
+            }
+            while (_listBalls.Exists(existing => existing.Equals(cueBall)) && attempts < 1000);
+
+            _cueBall = cueBall;
+            _listBalls.Add(cueBall);
         }
 
         /// <summary>
@@ -71,19 +115,44 @@ namespace pool_csharp_gdidrawer
         /// </summary>
         public void ShowTable()
         {
+            if (Canvas == null)
+                return;
 
+            Canvas.Clear();
+
+            foreach (Ball b in _listBalls)
+            {
+                b.Show(Canvas);
+                b.Move(Canvas, _listBalls);
+            }
+
+            // only draw when balls have stopped
+            if (!Running && _cueBall != null)
+            {
+                Canvas.AddLine
+                (
+                    (int)_cueBall.Center.X,
+                    (int)_cueBall.Center.Y,
+                    (int)_currentLocation.X,
+                    (int)_currentLocation.Y,
+                    Color.Yellow
+                );
+            }
+
+            Canvas.Render();
         }
 
-        private void Canvas_MouseMoveScaled(Point mouse)
+        private void Canvas_MouseMoveScaled(Point mousePos, CDrawer canvas)
         {
-            _currentLocation = new Vector2(mouse.X, mouse.Y);
+            // update field member
+            _currentLocation = new Vector2(mousePos.X, mousePos.Y);
 
             // only redraw aiming line if balls are not moving/idle
             if (!Running)
                 ShowTable();
         }
 
-        private void Canvas_MouseLeftClickScaled(Point mouse)
+        private void Canvas_MouseLeftClickScaled(Point mousePos, CDrawer canvas)
         {
             if (_cueBall == null) return;
 
@@ -92,13 +161,18 @@ namespace pool_csharp_gdidrawer
                 b.ResetHits();
 
             // calculate from cue ball to mouse click
-            Vector2 direction = new Vector2(mouse.X, mouse.Y) - _cueBall.Center;
+            //Vector2 direction = new Vector2(mousePos.X, mousePos.Y) - _cueBall.Center;
 
-            if (direction.LengthSquared() < 0.01f) return; // avoid zero length
+            Vector2 direction = _currentLocation - _cueBall.Center;
 
-            direction = Vector2.Normalize(direction) * 40f; // constant shot speed
+            if (direction.LengthSquared() < 0.01f) 
+                return; // avoid zero length, for normalization
 
-            _cueBall.SetVelocity(direction); // start simulation
+            // constant shot speed
+            direction = Vector2.Normalize(direction) * 40f; 
+
+            // apply velocity
+            _cueBall.SetVelocity(direction); 
         }
 
     }
