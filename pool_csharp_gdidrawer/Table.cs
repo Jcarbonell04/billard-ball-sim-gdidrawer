@@ -137,11 +137,36 @@ namespace pool_csharp_gdidrawer
                     (int)_currentLocation.Y,
                     Color.Yellow
                 );
+
+                Vector2 dir = Vector2.Normalize(_currentLocation - _cueBall.Center);
+                Vector2 perp = new Vector2(-dir.Y, dir.X);
+
+                // mult dir by 15 to go back along the line from the tip
+                // mult perp by 5 to offset sideways for the wing
+
+                // AddLine(x tip, y tip, x wing end, y wing end, colour) 
+                Canvas.AddLine((int)_currentLocation.X, 
+                               (int)_currentLocation.Y,
+                               (int)(_currentLocation.X - dir.X * 15 + perp.X * 5),
+                               (int)(_currentLocation.Y - dir.Y * 15 + perp.Y * 5), 
+                               Color.Red);
+
+                Canvas.AddLine((int)_currentLocation.X, 
+                               (int)_currentLocation.Y,
+                               (int)(_currentLocation.X - dir.X * 15 - perp.X * 5),
+                               (int)(_currentLocation.Y - dir.Y * 15 - perp.Y * 5), 
+                               Color.Red);
+
             }
 
             Canvas.Render();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mousePos"></param>
+        /// <param name="canvas"></param>
         private void Canvas_MouseMoveScaled(Point mousePos, CDrawer canvas)
         {
             // update field member
@@ -169,11 +194,14 @@ namespace pool_csharp_gdidrawer
                 return; // avoid zero length, for normalization
 
             // constant shot speed
-            direction = Vector2.Normalize(direction) * 40f; 
+            //direction = Vector2.Normalize(direction) * 40f; 
+
+            // variable shot power
+            float strength = direction.Length() / 15f;
+            direction = Vector2.Normalize(direction) * strength;
 
             // apply velocity
             _cueBall.SetVelocity(direction); 
         }
-
     }
 }

@@ -168,7 +168,7 @@ namespace pool_csharp_gdidrawer
         }
 
         /// <summary>
-        /// similiar to ica 6, finding if the t balls collide
+        /// finding if the t balls collide
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
@@ -220,16 +220,23 @@ namespace pool_csharp_gdidrawer
         }
 
         /// <summary>
-        /// 
+        /// Compares two balls based on their total number of collisions (TotalHits).
+        /// This is used for sorting a list of balls in descending order of total hits.
         /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
+        /// <param name="a">The first ball to compare</param>
+        /// <param name="b">The second ball to compare</param>
+        /// <returns>
+        /// -1 if a should come before b, 1 if a should come after b, 0 if equal.
+        /// </returns>
         public static int CompareTotalHits(Ball a, Ball b)
         {
-            if (a == null && b == null) return 0;
-            if (a == null) return 1;
-            if (b == null) return -1;
+            if (a == null && b == null) 
+                return 0; // equal
+            if (a == null) 
+                return 1; // a after b
+            if (b == null) 
+                return -1;// a befpre b
+            // compare total hits in desc
             return b.TotalHits.CompareTo(a.TotalHits);
         }
     }

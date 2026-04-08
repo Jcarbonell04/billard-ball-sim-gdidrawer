@@ -6,6 +6,7 @@ namespace pool_csharp_gdidrawer
 {
     public partial class Form1 : Form
     {
+        // PRIVATE MEMBERS
         private Table _table;        // use your Table class
         private Timer UI_Timer = new Timer();
 
@@ -43,6 +44,11 @@ namespace pool_csharp_gdidrawer
             UpdateGridView();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Timer_Tick(object sender, EventArgs e)
         {
             if (_table != null)
@@ -52,12 +58,27 @@ namespace pool_csharp_gdidrawer
             {
                 shotRunning = false;
                 UpdateGridView();
+
+                List<Ball> balls = _table.Balls;
+
+                // update stats
+                int ballsHit = balls.Count(b => b.Hits > 0);
+                int totalBalls = balls.Count;
+
+                int totalCollisions = balls.Sum(b => b.TotalHits);
+
+                double percent = totalBalls > 0 ? (ballsHit / (float)totalBalls) * 100f : 0f;
+
+                this.Text = $"Hit %: {percent:F1}% | Total Collisions: {totalCollisions}";
             }
 
             if (_table.Running)
                 shotRunning = true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void UpdateGridView()
         {
             if (_table == null || UI_Display_DGV == null) 
@@ -99,6 +120,11 @@ namespace pool_csharp_gdidrawer
                 _table.Canvas.Position = new Point(this.Right + 100, this.Top);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void UI_NewTable_MouseWheel(object sender, MouseEventArgs e)
         {
             if (e.Delta > 0) numBalls++;
@@ -107,6 +133,11 @@ namespace pool_csharp_gdidrawer
             UI_NewTable.Text = $"New Table ({numBalls})";
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void UI_NewTable_Click(object sender, EventArgs e)
         {
             if (_table != null && _table.Canvas != null)
@@ -124,6 +155,11 @@ namespace pool_csharp_gdidrawer
             UpdateGridView();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void UI_Friction_Lbl_Click(object sender, EventArgs e)
         {
             // adjust friction here
@@ -131,6 +167,11 @@ namespace pool_csharp_gdidrawer
             UI_Friction_Lbl.Text = $"{Ball.Friction:F3}";
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void UI_Friction_Lbl_MouseWheel(object sender, MouseEventArgs e)
         {
             if (e.Delta > 0) Ball.Friction += 0.001f;
@@ -140,6 +181,11 @@ namespace pool_csharp_gdidrawer
             UI_Friction_Lbl.Text = $"{Ball.Friction:F3}";
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void SortRadioChanged(object sender, EventArgs e)
         {
             UpdateGridView();
