@@ -2,6 +2,7 @@
 // Handles buttons, DataGridView, timer, and user interactions
 // Author: Jaedyn Carbonell 
 
+using System.Numerics;
 using Timer = System.Windows.Forms.Timer; // avoid ambiguity 
 
 namespace pool_csharp_gdidrawer
@@ -15,6 +16,8 @@ namespace pool_csharp_gdidrawer
         private int numBalls = 0;
         private bool shotRunning = false;
 
+        private Point lastPos;
+
         public Form1()
         {
             InitializeComponent();
@@ -26,8 +29,8 @@ namespace pool_csharp_gdidrawer
             UI_Timer.Tick += Timer_Tick;
             UI_Timer.Start();
 
-            //_table = new Table();
-            //_table.MakeTable(800, 600, numBalls);  // width, height, number of balls
+            _table = new Table();
+            _table.MakeTable(800, 600, numBalls);  // width, height, number of balls
 
             UI_NewTable.Click += UI_NewTable_Click;
             UI_NewTable.MouseWheel += UI_NewTable_MouseWheel;
@@ -43,6 +46,9 @@ namespace pool_csharp_gdidrawer
             UI_Display_DGV.DataSource = null;
             UI_Display_DGV.RowHeadersVisible = false;
             UpdateGridView();
+
+            // shake 
+            lastPos = _table.Canvas.Position;
         }
 
         /// <summary>
@@ -52,6 +58,26 @@ namespace pool_csharp_gdidrawer
         {
             if (_table != null)
                 _table.ShowTable();  // Table handles moving balls, aiming line, rendering
+
+            // shake screen snhancement
+            if (_table == null) return;
+
+            int scaleDown = 20;
+            Point currentPos = _table.Canvas.Position;
+            Point diff = new Point((currentPos.X - lastPos.X) / scaleDown, (currentPos.Y - lastPos.Y) / scaleDown);
+            lastPos = currentPos;
+
+            _table.Canvas.Clear();
+
+            foreach (Ball b in _table.Balls)
+            {
+                b.Move(_table.Canvas, _table.Balls);
+                b.Show(_table.Canvas);
+                b.SetVelocity(new Vector2(b.Velocity.X + diff.X, b.Velocity.Y + diff.Y));
+            }
+
+            _table.Canvas.Render();
+
 
             if (shotRunning && !_table.Running)
             {
